@@ -1,0 +1,120 @@
+/* Criar Banco de Dados MongoDB calcGeo no MongoSH */
+use calcGeo
+
+/* Inserir Dados na Coleção 'pessoas' */
+dados = [
+    {
+      "nome": "João Silva",
+      "idade": 30,
+      "endereco": [{"Rua": "Avenida Jonas Banks Leite, 31", "bairro": "Centro",    
+      "cidade": "Registro", "estado": "SP"}],  // Endereço sem coordenadas inicialmente
+      "profissao": "Engenheiro",
+      "habilidades": ["Python", "MongoDB", "Node.js"]
+    },
+    {
+      "nome": "Maria Oliveira",
+      "idade": 25,
+      "endereco": [{"Rua": "Wild José de Souza, 38", "bairro": "Centro",    
+      "cidade": "Registro", "estado": "SP"}],
+      "habilidades": ["Photoshop", "Illustrator", "Figma"]
+    },
+    {
+      "nome": "Pedro Sousa",
+      "idade": 28,
+      "endereco": [{"Rua": "Rua José Lopes, 35", "bairro": "Centro",    
+      "cidade": "Sete Barras", "estado": "SP"}],
+      "profissao": "Médico",
+      "habilidades": ["Primeiros Socorros", "Pediatria", "Emergências Médicas"]
+    }
+]
+
+/* Inserir os dados na coleção 'pessoas' */
+db.pessoas.insertMany(dados)  // Insere todos os registros de uma vez na coleção 'pessoas'
+
+/* Atualizar os registros com as coordenadas geográficas */
+/* Adicionamos latitude e longitude, assim como o tipo de dado "Point" para geolocalização */
+db.pessoas.updateOne(
+  {"nome": "João Silva"},
+  {
+    $set: {
+      "endereco.0.coordinates": [-24.495612057077658, -47.84489953187316],  // (latitude, longitude)
+      "endereco.0.type": "Point"  // Define o tipo como Point, necessário para o índice 2dsphere
+    }
+  }
+)
+
+db.pessoas.updateOne(
+  {"nome": "Maria Oliveira"},
+  {
+    $set: {
+      "endereco.0.coordinates": [-24.496403931689045, -47.847378816531],  
+      "endereco.0.type": "Point"
+    }
+  }
+)
+
+db.pessoas.updateOne(
+  {"nome": "Pedro Sousa"},
+  {
+    $set: {
+      "endereco.0.coordinates": [-24.39124435475163, -47.92585706224719],  
+      "endereco.0.type": "Point"
+    }
+  }
+)
+
+/* Criar um índice geoespacial 2dsphere baseado no campo de coordenadas */
+db.pessoas.createIndex({"endereco.coordinates": "2dsphere"})
+
+/* Visualizar os índices criados na coleção 'pessoas' */
+db.pessoas.getIndexes()
+
+/* Apagar o índice criado, se necessário */
+db.pessoas.dropIndex({"endereco.coordinates": "2dsphere"})  // Remove o índice 2dsphere
+
+/* Realizar uma busca geoespacial com $geoNear */
+db.pessoas.aggregate([ 
+  { 
+    $geoNear: { 
+      near: { 
+        type: "Point",  // Tipo Point, necessário para a busca geoespacial
+        coordinates: [-24.495612057077658, -47.84489953187316]  // Ponto de referência (long, lat)
+      },
+      distanceField: "distancia",  // Campo que armazenará a distância calculada
+      maxDistance: 5000,  // Distância máxima em metros (5 km)
+      spherical: true  // Utiliza cálculos esféricos
+    } 
+  }
+])
+
+/* Recuperar todos os documentos da coleção para ver os dados */
+db.pessoas.find()
+
+/* Recuperar dois pontos específicos pelo ObjectId para cálculo de distância */
+var ponto1 = db.pessoas.findOne({ _id: ObjectId('66e9b7a046b4ecc6f3cdcdf6') })  // ID fictício, substitua pelo seu real
+var ponto2 = db.pessoas.findOne({ _id: ObjectId('66e9b7a046b4ecc6f3cdcdf8') })  // ID fictício, substitua pelo seu real
+
+/* Função para calcular a distância entre dois pontos usando fórmula de Haversine */
+function calcularDistancia(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Raio da Terra em km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);  // Diferença de latitude em radianos
+  const dLon = (lon2 - lon1) * (Math.PI / 180);  // Diferença de longitude em radianos
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));  // Fórmula Haversine
+  return R * c;  // Distância em km
+}
+
+/* Verifique se os pontos existem e se possuem coordenadas */
+if (ponto1 && ponto2 && ponto1.endereco[0].coordinates && ponto2.endereco[0].coordinates) {
+    const lat1 = ponto1.endereco[0].coordinates[1];  // Latitude do ponto 1
+    const lon1 = ponto1.endereco[0].coordinates[0];  // Longitude do ponto 1
+    const lat2 = ponto2.endereco[0].coordinates[1];  // Latitude do ponto 2
+    const lon2 = ponto2.endereco[0].coordinates[0];  // Longitude do ponto 2
+
+    const distancia = calcularDistancia(lat1, lon1, lat2, lon2);  // Calcula a distância
+    print(`A distância entre os pontos é ${distancia} km`);  // Exibe a distância em km
+} else {
+    print("Erro ao recuperar as coordenadas.");  // Caso as coordenadas não sejam encontradas
+}
