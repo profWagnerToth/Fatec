@@ -1,14 +1,3 @@
-from pymongo import MongoClient
-
-def conectar():
-    try:
-        conexao = MongoClient('localhost', 27017)
-        print("Conexão com o MongoDB estabelecida com sucesso!")
-        return conexao
-    except Exception as e:
-        print(f"Erro ao conectar ao MongoDB: {e}")
-
-
 from pymongo import MongoClient  # Biblioteca para conectar o Python ao MongoDB
 from pymongo import errors  # Lidar com erros do MongoDB
 from bson import ObjectId  # Manipular identificadores únicos no MongoDB
