@@ -1,0 +1,16 @@
+{
+  "name": "aula04-biblioteca",
+  "version": "1.0.0",
+  "main": "biblioteca.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mongodb": "^6.13.1"
+  },
+  "devDependencies": {},
+  "description": ""
+}
