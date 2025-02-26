@@ -9,7 +9,7 @@ async function main() {
   const client = new MongoClient(uri);
 
   try {
-    // Conecta ao servidor MongoDB
+    // Conecta ao servidor MongoDBpip 
     await client.connect();
     // Seleciona o banco de dados 'biblioteca'
     const database = client.db('biblioteca');
