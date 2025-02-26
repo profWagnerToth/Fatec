@@ -4,7 +4,7 @@ const { MongoClient } = require('mongodb');
 // Função principal assíncrona
 async function main() {
   // Define a URI de conexão com o MongoDB
-  const uri = "mongodb://localhost:27017";
+  const uri = "mongodb://127.0.0.1:27017";
   // Cria uma nova instância do cliente MongoDB
   const client = new MongoClient(uri);
 
