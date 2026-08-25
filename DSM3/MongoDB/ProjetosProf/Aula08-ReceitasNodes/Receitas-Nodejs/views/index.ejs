@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gerenciador de Receitas</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container">
+  <h1 class="my-4">Receitas</h1>
+
+  <!-- Formulário de busca -->
+  <form action="/" method="GET" class="mb-4">
+    <div class="form-group">
+      <input type="text" name="search" class="form-control" placeholder="Buscar Receita pelo Nome" value="<%= searchQuery %>">
+    </div>
+    <button type="submit" class="btn btn-primary">Buscar</button>
+  </form>
+
+  <!-- Formulário para adicionar nova receita -->
+  <form action="/adicionar" method="POST" class="mb-4">
+    <div class="form-group">
+      <input type="text" name="nome" class="form-control" placeholder="Nome da Receita" required>
+    </div>
+    <div class="form-group">
+      <textarea name="ingredientes" class="form-control" placeholder="Ingredientes (separados por vírgula)" required></textarea>
+    </div>
+    <div class="form-group">
+      <textarea name="instrucoes" class="form-control" placeholder="Instruções" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Adicionar Receita</button>
+  </form>
+
+  <!-- Lista de receitas -->
+  <ul class="list-group">
+    <% receitas.forEach(receita => { %>
+      <li class="list-group-item">
+        <h2><%= receita.nome %></h2>
+        <p>Ingredientes: <%= receita.ingredientes.join(', ') %></p>
+        <p><%= receita.instrucoes %></p>
+
+        <!-- Formulário para deletar receita -->
+        <form action="/deletar" method="POST" class="d-inline">
+          <input type="hidden" name="id" value="<%= receita._id %>">
+          <button type="submit" class="btn btn-danger btn-sm">Deletar</button>
+        </form>
+
+        <!-- Formulário para editar receita -->
+        <a href="/editar/<%= receita._id %>" class="btn btn-warning btn-sm">Editar</a>
+      </li>
+    <% }); %>
+  </ul>
+
+  <!-- Controles de paginação -->
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center mt-4">
+      <% if (page > 1) { %>
+        <li class="page-item">
+          <a class="page-link" href="?page=<%= page - 1 %><%= searchQuery ? '&search=' + searchQuery : '' %>" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+      <% } %>
+      <% for (let p = 1; p <= totalPages; p++) { %>
+        <li class="page-item <%= p === page ? 'active' : '' %>">
+          <a class="page-link" href="?page=<%= p %><%= searchQuery ? '&search=' + searchQuery : '' %>"><%= p %></a>
+        </li>
+      <% } %>
+      <% if (page < totalPages) { %>
+        <li class="page-item">
+          <a class="page-link" href="?page=<%= page + 1 %><%= searchQuery ? '&search=' + searchQuery : '' %>" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      <% } %>
+    </ul>
+  </nav>
+</body>
+</html>
